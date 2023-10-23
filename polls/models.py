@@ -51,7 +51,7 @@ class Choice(models.Model):
         return self.choice_text
 
 class Stanowisko(models.Model):
-    nazwa = models.CharField(max_length=100, blank=False)
+    nazwa = models.CharField(max_length=60, blank=False)
     opis = models.TextField(blank=True, null=True)
 
     def __str__(self):
@@ -60,15 +60,15 @@ class Stanowisko(models.Model):
     class Meta:
         verbose_name_plural = "Stanowiska"
 
-class PlecChoices(models.IntegerChoices):
-    KOBIETA = 1, "Kobieta"
-    MEZCZYZNA = 2, "Mężczyzna"
-    INNE = 3, "Inne"
-
 class Osoba(models.Model):
-    imie = models.CharField(max_length=100, blank=False)
-    nazwisko = models.CharField(max_length=100, blank=False)
-    plec = models.IntegerField(choices=PlecChoices.choices)
+    class Plec(models.IntegerChoices):
+        KOBIETA = 1, "Kobieta"
+        MEZCZYZNA = 2, "Mężczyzna"
+        INNE = 3, "Inne"
+
+    imie = models.CharField(max_length=60, blank=False)
+    nazwisko = models.CharField(max_length=60, blank=False)
+    plec = models.IntegerField(choices=Plec.choices)
     stanowisko = models.ForeignKey(Stanowisko, on_delete=models.CASCADE)
     data_dodania = models.DateField(auto_now_add=True)
 
