@@ -1,10 +1,22 @@
 from django.contrib import admin
+from .models import Person, Team, Osoba, Stanowisko
 
-# Register your models here.
-from django.contrib import admin
+# admin.site.register(Team)
+# class PersonAdmin(admin.ModelAdmin):
+#     list_display = ['name', 'shirt_size']
+# admin.site.register(Person, PersonAdmin)
 
-from .models import Question, Team, Person
+class StanowiskoAdmin(admin.ModelAdmin):
+    list_filter = ('nazwa',)
+admin.site.register(Stanowisko, StanowiskoAdmin)
 
-admin.site.register(Question)
-admin.site.register(Team)
-admin.site.register(Person)
+class OsobaAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'stanowisko_with_id')
+    @admin.display(description='Stanowisko (id)')
+    def stanowisko_with_id(self, obj):
+        return f"{obj.stanowisko.nazwa} ({obj.stanowisko.id})"
+    stanowisko_with_id.short_description = 'Stanowisko (id)'
+    list_filter = ('stanowisko', 'data_dodania')
+    readonly_fields = ('data_dodania',)
+
+admin.site.register(Osoba, OsobaAdmin)
