@@ -1,10 +1,10 @@
 from django.contrib import admin
 from .models import Person, Team, Osoba, Stanowisko
 
-# admin.site.register(Team)
-# class PersonAdmin(admin.ModelAdmin):
-#     list_display = ['name', 'shirt_size']
-# admin.site.register(Person, PersonAdmin)
+admin.site.register(Team)
+class PersonAdmin(admin.ModelAdmin):
+     list_display = ['name', 'shirt_size']
+admin.site.register(Person, PersonAdmin)
 
 class StanowiskoAdmin(admin.ModelAdmin):
     list_filter = ('nazwa',)

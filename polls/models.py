@@ -27,7 +27,7 @@ class Person(models.Model):
 
     name = models.CharField(max_length=60)
     shirt_size = models.CharField(max_length=1, choices=SHIRT_SIZES, default=SHIRT_SIZES[0][0])
-    month_added = models.IntegerField(choices=MONTHS.choices, default=MONTHS.choices[0][0])
+    data_dodania = models.DateField(auto_now_add=True)
     team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.SET_NULL)
 
     def __str__(self):
