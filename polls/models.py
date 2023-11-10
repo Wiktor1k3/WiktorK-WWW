@@ -1,10 +1,8 @@
 import datetime
-
+from datetime import date
 from django.db import models
 from django.utils import timezone
 
-
-# deklaracja statycznej listy wyboru do wykorzystania w klasie modelu
 MONTHS = models.IntegerChoices('Miesiace', 'Styczeń Luty Marzec Kwiecień Maj Czerwiec Lipiec Sierpień Wrzesień Październik Listopad Grudzień')
 
 SHIRT_SIZES = (
@@ -70,7 +68,7 @@ class Osoba(models.Model):
     nazwisko = models.CharField(max_length=60, blank=False)
     plec = models.IntegerField(choices=Plec.choices)
     stanowisko = models.ForeignKey(Stanowisko, on_delete=models.CASCADE)
-    data_dodania = models.DateField(auto_now_add=True)
+    data_dodania = models.DateField(default=date.today, blank=True, null=True)
 
     class Meta:
         ordering = ['nazwisko']
@@ -78,4 +76,3 @@ class Osoba(models.Model):
 
     def __str__(self):
         return f'{self.imie} {self.nazwisko}'
-
