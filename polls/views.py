@@ -31,7 +31,6 @@ def osoba_list(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # POST - Dodawanie osoby w chrome przez konsole:
-# // Pobierz token CSRF z ciasteczka
 # const csrfToken = document.cookie.match(/csrftoken=([^ ;]*)/)[1];
 #
 # fetch('http://127.0.0.1:8000/osoba/', {
@@ -44,8 +43,8 @@ def osoba_list(request):
 #     "imie": "Nowa",
 #     "nazwisko": "Osoba",
 #     "plec": 1,
-#     "stanowisko": 1,  // Zastąp 1 odpowiednim ID stanowiska
-#     "data_dodania": "2023-01-01",  // Zastąp odpowiednią datą
+#     "stanowisko": 1,  
+#     "data_dodania": "2023-01-01",  
 #   }),
 # })
 # .then(response => response.json())
@@ -119,7 +118,6 @@ def stanowisko_list(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # POST - Dodawanie stanowiska w chrome przez konsole:
-# // Pobierz token CSRF z ciasteczka
 # const csrfToken = document.cookie.match(/csrftoken=([^ ;]*)/)[1];
 #
 # fetch('http://127.0.0.1:8000/stanowisko/', {
