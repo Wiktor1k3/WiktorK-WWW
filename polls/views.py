@@ -1,9 +1,11 @@
 from django.http import HttpResponse
-from rest_framework import viewsets, status
-from .models import Person, Team,Osoba,Stanowisko
-from .serializers import PersonSerializer, TeamSerializer, OsobaSerializer, StanowiskoSerializer
+from .models import Osoba,Stanowisko
+from .serializers import OsobaSerializer, StanowiskoSerializer
 from rest_framework.decorators import api_view
+from django.http import Http404
+from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework import status
 
 def index(request):
     return HttpResponse("Hello, world. You're at the polls index.")
@@ -16,79 +18,47 @@ def index(request):
 #     queryset = Team.objects.all()
 #     serializer_class = TeamSerializer
 
-@api_view(['GET','POST'])
-def osoba_list(request):
-    if request.method == 'GET':
+class OsobaList(APIView):
+    def get(self, request, format=None):
         osoby = Osoba.objects.all()
         serializer = OsobaSerializer(osoby, many=True)
         return Response(serializer.data)
 
-    elif request.method == 'POST':
+    def post(self, request, format=None):
         serializer = OsobaSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# POST - Dodawanie osoby w chrome przez konsole:
-# const csrfToken = document.cookie.match(/csrftoken=([^ ;]*)/)[1];
-#
-# fetch('http://127.0.0.1:8000/osoba/', {
-#   method: 'POST',
-#   headers: {
-#     'Content-Type': 'application/json',
-#     'X-CSRFToken': csrfToken,
-#   },
-#   body: JSON.stringify({
-#     "imie": "Nowa",
-#     "nazwisko": "Osoba",
-#     "plec": 1,
-#     "stanowisko": 1,  
-#     "data_dodania": "2023-01-01",  
-#   }),
-# })
-# .then(response => response.json())
-# .then(data => console.log(data))
-# .catch(error => console.error('Error:', error));
+class OsobaFiltered(APIView):
+    def get(self, request, imie, format=None):
+        osoby = Osoba.objects.filter(imie__icontains=imie)
+        serializer = OsobaSerializer(osoby, many=True)
+        return Response(serializer.data)
 
-@api_view(['GET'])
-def osoba_list_filtered(request):
-    imie_param = request.query_params.get('imie', '')
+class OsobaDetail(APIView):
+    def get_objects(self, pk):
+        try:
+            return Osoba.objects.get(pk=pk)
+        except Osoba.DoesNotExist:
+            raise Http404
 
-    osoby = Osoba.objects.filter(imie__icontains=imie_param)
-
-    serializer = OsobaSerializer(osoby, many=True)
-    return Response(serializer.data)
-
-@api_view(['GET', 'PUT', 'DELETE'])
-def osoba_detail(request, pk):
-
-    """
-    :param request: obiekt DRF Request
-    :param pk: id obiektu Osoba
-    :return: Response (with status and/or object/s data)
-    """
-    try:
-        osoba = Osoba.objects.get(pk=pk)
-    except Osoba.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-    """
-    Zwraca pojedynczy obiekt typu Osoba.
-    """
-    if request.method == 'GET':
-        osoba = Osoba.objects.get(pk=pk)
+    def get(self, request, pk, format=None):
+        osoba = self.get_objects(pk)
         serializer = OsobaSerializer(osoba)
         return Response(serializer.data)
 
-    elif request.method == 'PUT':
+    def put(self, request, pk, format=None):
+        osoba = self.get_objects(pk)
         serializer = OsobaSerializer(osoba, data=request.data)
-        if serializer.is_valid():
+        if(serializer.is_valid()):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    elif request.method == 'DELETE':
+    def delete(self, request, pk, format=None):
+        osoba = self.get_objects(pk)
         osoba.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -101,7 +71,6 @@ def osoba_detail(request, pk):
 #   "stanowisko": 1,
 #   "data_dodania": "2023-01-01"
 # }
-
 
 @api_view(['GET','POST'])
 def stanowisko_list(request):
@@ -118,6 +87,7 @@ def stanowisko_list(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # POST - Dodawanie stanowiska w chrome przez konsole:
+# // Pobierz token CSRF z ciasteczka
 # const csrfToken = document.cookie.match(/csrftoken=([^ ;]*)/)[1];
 #
 # fetch('http://127.0.0.1:8000/stanowisko/', {
