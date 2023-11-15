@@ -11,7 +11,6 @@ SHIRT_SIZES = (
         ('L', 'Large'),
     )
 
-
 class Team(models.Model):
     name = models.CharField(max_length=60)
     country = models.CharField(max_length=2)
@@ -69,6 +68,7 @@ class Osoba(models.Model):
     plec = models.IntegerField(choices=Plec.choices)
     stanowisko = models.ForeignKey(Stanowisko, on_delete=models.CASCADE)
     data_dodania = models.DateField(default=date.today, blank=True, null=True)
+    wlasciciel = models.ForeignKey('auth.User', related_name='osoby', on_delete=models.CASCADE)
 
     class Meta:
         ordering = ['nazwisko']
