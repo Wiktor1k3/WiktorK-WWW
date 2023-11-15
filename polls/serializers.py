@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Person, Team, MONTHS, SHIRT_SIZES, Osoba, Stanowisko
 from datetime import datetime
+from django.contrib.auth.models import User
 
 class PersonSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
@@ -48,6 +49,8 @@ class OsobaSerializer(serializers.Serializer):
     plec = serializers.ChoiceField(choices=Osoba.Plec.choices)
     stanowisko = serializers.PrimaryKeyRelatedField(queryset=Stanowisko.objects.all())
     data_dodania = serializers.DateField(read_only=False)
+    wlasciciel = serializers.ReadOnlyField(source='wlasciciel.username')
+
 
     def validate_imie(self, value):
 
@@ -74,6 +77,7 @@ class OsobaSerializer(serializers.Serializer):
         return value
 
     def create(self, validated_data):
+        validated_data['wlasciciel'] = self.context['request'].user
         return Osoba.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
