@@ -3,6 +3,7 @@ from datetime import date
 from django.db import models
 from django.utils import timezone
 
+
 MONTHS = models.IntegerChoices('Miesiace', 'Styczeń Luty Marzec Kwiecień Maj Czerwiec Lipiec Sierpień Wrzesień Październik Listopad Grudzień')
 
 SHIRT_SIZES = (
@@ -73,6 +74,9 @@ class Osoba(models.Model):
     class Meta:
         ordering = ['nazwisko']
         verbose_name_plural = "Osoby"
+        permissions = [
+            ("can_view_other_persons", "Mogą zobaczyć osoby które nie są właścicielami"),
+        ]
 
     def __str__(self):
         return f'{self.imie} {self.nazwisko}'
