@@ -1,6 +1,7 @@
+from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.models import AnonymousUser
 from rest_framework.authentication import BasicAuthentication, TokenAuthentication, SessionAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, DjangoModelPermissions
 from .models import Osoba, Stanowisko, Person, Team
 from .serializers import OsobaSerializer, StanowiskoSerializer, PersonSerializer, TeamSerializer
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -11,6 +12,7 @@ from rest_framework import status
 from polls.permissions import IsOwnerOrReadOnly
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
+from polls.permissions import CustomDjangoModelPermissions
 
 class CustomAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
@@ -184,30 +186,34 @@ def teams_list(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET', 'PUT', 'DELETE'])
-def teams_detail(request, pk):
+class TeamDetail(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated, CustomDjangoModelPermissions]
 
-    try:
-        team = Team.objects.get(pk=pk)
-    except Team.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+    def get_queryset(self):
+        return Team.objects.all()
 
-    """
-    Zwraca pojedynczy obiekt typu Osoba.
-    """
-    if request.method == 'GET':
-        team = Team.objects.get(pk=pk)
+    def get_object(self, pk):
+        try:
+            return Team.objects.get(pk=pk)
+        except Team.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        team = self.get_object(pk)
         serializer = TeamSerializer(team)
         return Response(serializer.data)
 
-    elif request.method == 'PUT':
+    def put(self, request, pk, format=None):
+        team = self.get_object(pk)
         serializer = TeamSerializer(team, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    elif request.method == 'DELETE':
+    def delete(self, request, pk, format=None):
+        team = self.get_object(pk)
         team.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -257,3 +263,10 @@ def stanowisko_detail(request, pk):
         stanowisko.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+@permission_required('polls.can_view_other_persons')
+def osoba_view(request, pk):
+    try:
+        osoba = Osoba.objects.get(pk=pk)
+        return HttpResponse(f"Ten użytkownik nazywa się {osoba.imie} {osoba.nazwisko}")
+    except Osoba.DoesNotExist:
+        return HttpResponse(f"W bazie nie ma użytkownika o id={pk}.")
