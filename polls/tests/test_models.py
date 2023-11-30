@@ -24,7 +24,6 @@ class PersonModelTest(TestCase):
 client = APIClient()
 
 class AddPersonAndTeamTest(TestCase):
-    """ Testowanie bez użycia APIClient"""
 
     def setUp(self):
         self.team1 = Team.objects.create(name='Loosers', country='PL')
