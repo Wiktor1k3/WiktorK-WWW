@@ -1,16 +1,10 @@
-from django.test import TestCase
-from ..models import Person
+from rest_framework.test import APITestCase
+from django.urls import reverse
 from django.contrib.auth.models import User
 from rest_framework.test import APIRequestFactory, APIClient
 from rest_framework.test import force_authenticate
 from django.test import TestCase
 from ..views import *
-from django.shortcuts import render
-
-
-
-# initialize the APIClient app
-
 
 class PersonModelTest(TestCase):
     @classmethod
@@ -51,31 +45,50 @@ class AddPersonAndTeamTest(TestCase):
         self.assertEqual(self.zbyszek.team.id, self.team1.id)
         self.assertEqual(self.andrzej.team.id, self.team2.id)
 
+class OsobaListTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='user', password='password')
 
-class OsobaListTest(TestCase):
-    """ Testowanie bez użycia APIClient"""
-
-    def setUp(self) -> None:
-        self.stanowisko = Stanowisko.objects.create(nazwa="Sprzątaczka")
-        self.user = User.objects.create_user(username='testuser', password='12345')
-        self.zbyszek = Osoba.objects.create(
-            imie='Zbyszek',nazwisko='Antczak',plec=2,stanowisko=self.stanowisko, wlasciciel=self.user)
-        self.assertEqual(self.zbyszek.id,1)
-
-    def test_get_osoby(self):
-        factory = APIRequestFactory()
-        request = factory.get(f'/osoba/{self.zbyszek.pk}/')
-        osoba = Osoba.objects.get(pk=self.zbyszek.pk)
-        serializer = OsobaSerializer(osoba)
-        response = request.re
-        self.assertEqual(response.data, serializer.data)
+    def test_osoba_list_authenticated(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse('osoba-list')
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_osoba_list_unauthenticated(self):
+        self.client.logout()
+        url = reverse('osoba-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+class StanowiskoAPITestCase(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.token = Token.objects.get(user=self.user)
+        self.client = APIClient()
+
+
+    def test_authentication_with_token_and_create_stanowisko(self):
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        data = {'nazwa': 'Murarz', 'opis': 'Opis stanowiska'}
+        url = reverse('stanowisko-list')
+        response = self.client.post(url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['nazwa'], 'Murarz')
+
+
+class TeamsAPITestCase(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+    def test_authentication_with_force_authenticate_and_create_stanowisko(self):
         factory = APIRequestFactory()
-        request = factory.get(f'/osoba/{self.zbyszek.id}/')
+        url = reverse('teams-list')
+        request = factory.post(url, {'name': 'Locky', 'country': 'PL'}, format='json')
         force_authenticate(request, user=self.user)
-        response = OsobaDetail.get(request, self.zbyszek.id)
-        # print(response.data)  # tylko do sprawdzenia
-        serializer = OsobaSerializer(self.zbyszek)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, serializer.data)
+        response = teams_list(request)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        self.assertEqual(response.data['name'], 'Locky')
