@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'debug_toolbar',
+    'graphene_django',
 
 ]
 
@@ -54,6 +55,10 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
+}
+
+GRAPHENE = {
+    "SCHEMA": "p1.schema.schema"
 }
 
 MIDDLEWARE = [
